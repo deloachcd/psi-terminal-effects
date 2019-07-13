@@ -11,28 +11,45 @@ fi
 # ALL_JEFFS_GADGETS="$(ls jeffs-gadgets)"
 
 get_random_psi_attack() {
-    i=0
-    for attack in $(ls psi-attacks); do
-        psi_attacks[$i]=$attack
-        i=$(expr $i + 1)
-    done
     NUM_PSI_ATTACKS=$(ls psi-attacks | wc -l)
+    NUM_JEFFS_GADGETS=$(ls jeffs-gadgets | wc -l)
+    NUM_POSSIBILITIES=$NUM_PSI_ATTACKS
+    let "NUM_POSSIBILITIES += $NUM_JEFFS_GADGETS"
     psi_choice=$RANDOM
-    let "psi_choice %= $NUM_PSI_ATTACKS"
-    psi_attack=${psi_attacks[psi_choice]}
+    let "psi_choice %= $NUM_POSSIBILITIES"
+    if [[ $psi_choice -ge $NUM_PSI_ATTACKS ]]; then
+        # It's one of Jeff's gadgets
+        let "psi_choice %= $NUM_JEFFS_GADGETS"
+        search_dir="jeffs-gadgets"
+    else
+        # It's a PSI attack
+        search_dir="psi-attacks"
+    fi
+    i=0
+    for attack in $(ls $search_dir); do
+        if [[ $i == $psi_choice ]]; then
+            psi_choice="$search_dir/$attack"
+            break
+        else
+            i=$(expr $i + 1)
+        fi
+    done
     echo $psi_choice
 }
 
 get_random_psi_attack_variant() {
-    NUM_PSI_ATTACK_VARIANTS=$(ls "psi-attacks/$1" | wc -l)
+    NUM_PSI_ATTACK_VARIANTS=$(ls "$1" | wc -l)
     variant_choice=$RANDOM
     let "variant_choice %= $NUM_PSI_ATTACK_VARIANTS"
     i=0
-    for variant in $(ls "psi-attacks/$1"); do
-        attack_variants[$i]=$variant
-        i=$(expr $i + 1)
+    for variant in $(ls "$1"); do
+        if [[ $i == $variant_choice ]]; then
+            psi_choice_variant=$variant
+            break
+        else
+            i=$(expr $i + 1)
+        fi
     done
-    psi_attack_variant=${attack_variants[variant_choice]}
 }
 
 error() {
@@ -41,27 +58,33 @@ error() {
 }
 
 if [[ $# == 0 ]]; then
-    get_random_psi_attack  # reads into 'psi_attack'
-    get_random_psi_attack_variant $psi_attack # reads into 'psi_attack_variant'
-    echo "psi-attacks/$psi_attack/$psi_attack_variant"
+    get_random_psi_attack  # reads into 'psi_choice'
+    if [[ $psi_choice =~ "jeffs-gadgets" ]]; then
+        $PK_EXECUTE "$psi_choice"
+    else
+        get_random_psi_attack_variant $psi_choice # reads into 'psi_attack_variant'
+        $PK_EXECUTE "$psi_choice/$psi_choice_variant"
+    fi
 elif [[ $# -ge 1 ]]; then
     psi_attack="$1"
     ALL_PSI_ATTACKS="$(ls psi-attacks)"
+    ALL_JEFFS_GADGETS="$(ls jeffs-gadgets)"
     if [[ "$ALL_PSI_ATTACKS" =~ "$psi_attack" ]]; then
         if [[ $# == 1 ]]; then
-            get_random_psi_attack_variant $psi_attack
+            get_random_psi_attack_variant psi-attacks/$psi_attack
         else
             ALL_ATTACK_VARIANTS=$(ls psi-attacks/$psi_attack)
-            echo $ALL_ATTACK_VARIANTS
             if [[ "$ALL_ATTACK_VARIANTS" =~ "$2.webm" ]]; then
                 psi_attack_variant="$2.webm"
             else
                 error "Error: '$psi_attack' has no '$2' variant."
             fi
         fi
+        $PK_EXECUTE "psi-attacks/$psi_attack/$psi_attack_variant"
+    elif [[ "$ALL_JEFFS_GADGETS" =~ "$psi_attack" ]]; then
+        $PK_EXECUTE "jeffs-gadgets/$psi_attack.webm"
     else
         error "Error: '$1' is not a known PSi attack."
     fi
 fi
 
-$PK_EXECUTE "psi-attacks/$psi_attack/$psi_attack_variant"
