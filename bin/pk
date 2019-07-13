@@ -8,7 +8,7 @@ else
     exit -1
 fi
 
-# ALL_JEFFS_GADGETS="$(ls jeffs-gadgets)"
+PSI_DIR=$HOME/.local/share/terminal-psi
 
 get_random_psi_attack() {
     NUM_PSI_ATTACKS=$(ls psi-attacks | wc -l)
@@ -56,13 +56,14 @@ error() {
     exit -1
 }
 
+cd $PSI_DIR
 if [[ $# == 0 ]]; then
     get_random_psi_attack  # reads into 'psi_choice'
     if [[ $psi_choice =~ "jeffs-gadgets" ]]; then
-        $PK_EXECUTE "$psi_choice"
+        $PK_EXECUTE "$psi_choice" 2>/dev/null
     else
         get_random_psi_attack_variant $psi_choice # reads into 'psi_attack_variant'
-        $PK_EXECUTE "$psi_choice/$psi_choice_variant"
+        $PK_EXECUTE "$psi_choice/$psi_choice_variant" 2>/dev/null
     fi
 elif [[ $# -ge 1 ]]; then
     psi_attack="$1"
@@ -79,9 +80,9 @@ elif [[ $# -ge 1 ]]; then
                 error "Error: '$psi_attack' has no '$2' variant."
             fi
         fi
-        $PK_EXECUTE "psi-attacks/$psi_attack/$psi_choice_variant"
+        $PK_EXECUTE "psi-attacks/$psi_attack/$psi_choice_variant" 2>/dev/null
     elif [[ "$ALL_JEFFS_GADGETS" =~ "$psi_attack" ]]; then
-        $PK_EXECUTE "jeffs-gadgets/$psi_attack.webm"
+        $PK_EXECUTE "jeffs-gadgets/$psi_attack.webm" 2>/dev/null
     else
         error "Error: '$1' is not a known PSi attack."
     fi
