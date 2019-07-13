@@ -4,6 +4,7 @@
 Have you ever played the SNES game, Earthbound, and thought:
 > Man, if only I could get the psychedelic effects whenever I use a psychic attack
 > to render in ASCII form in my unix terminal.
+
 If so, this is for you.
 
 ## Dependencies
