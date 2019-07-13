@@ -75,12 +75,12 @@ elif [[ $# -ge 1 ]]; then
         else
             ALL_ATTACK_VARIANTS=$(ls psi-attacks/$psi_attack)
             if [[ "$ALL_ATTACK_VARIANTS" =~ "$2.webm" ]]; then
-                psi_attack_variant="$2.webm"
+                psi_choice_variant="$2.webm"
             else
                 error "Error: '$psi_attack' has no '$2' variant."
             fi
         fi
-        $PK_EXECUTE "psi-attacks/$psi_attack/$psi_attack_variant"
+        $PK_EXECUTE "psi-attacks/$psi_attack/$psi_choice_variant"
     elif [[ "$ALL_JEFFS_GADGETS" =~ "$psi_attack" ]]; then
         $PK_EXECUTE "jeffs-gadgets/$psi_attack.webm"
     else
